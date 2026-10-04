@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BasketWise | Product Recommendations</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="BasketWise home"><span class="brand-mark">B</span> BasketWise</a>
+      <span class="project-label">MARKET BASKET ANALYSIS</span>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="live-dot"></span> GROCERY INSIGHTS</span>
+        <h1>Find what goes<br><em>well together.</em></h1>
+        <p>Choose a product and discover items frequently purchased with it, based on your basket analysis.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="basket-icon"><span>🥬</span><span>🍞</span><span>🥛</span></div>
+        <span class="spark spark-one">✳</span><span class="spark spark-two">✦</span>
+      </div>
+    </section>
+
+    <section class="search-card" aria-labelledby="search-title">
+      <div class="section-heading">
+        <span class="step-number">01</span>
+        <div><h2 id="search-title">Choose a product</h2><p>Start with one item from your grocery list.</p></div>
+      </div>
+      <form method="post" class="search-form">
+        <label class="sr-only" for="product">Product</label>
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="product" name="product" list="products" value="{{ selected_product }}" placeholder="Search products, e.g. whole milk" autocomplete="off" required>
+        <datalist id="products">
+          {% for product in products %}<option value="{{ product }}">{% endfor %}
+        </datalist>
+        <button type="submit">Show recommendations <span aria-hidden="true">→</span></button>
+      </form>
+      <div class="card-foot"><span class="tiny-check">✓</span> Recommendations come from saved association rules</div>
+    </section>
+
+    {% if recommendations %}
+    <section class="results" aria-live="polite">
+      <div class="results-heading">
+        <div><span class="eyebrow">YOUR RESULTS</span><h2>Often bought with <span>{{ selected_product }}</span></h2></div>
+        <span class="result-count">{{ recommendations|length }} recommendations</span>
+      </div>
+      <div class="recommendation-list">
+        {% for rule in recommendations %}
+        <article class="recommendation-row">
+          <div class="rank">{{ "%02d"|format(loop.index) }}</div>
+          <div class="product-info"><span class="product-label">RECOMMENDED ITEM{% if rule.consequents|length > 1 %}S{% endif %}</span><h3>{{ rule.consequents|join(" + ") }}</h3></div>
+          <div class="metric"><span>SUPPORT</span><strong>{{ "%.2f"|format(rule.support * 100) }}%</strong></div>
+          <div class="metric"><span>CONFIDENCE</span><strong>{{ "%.1f"|format(rule.confidence * 100) }}%</strong></div>
+          <div class="metric"><span>LIFT</span><strong>{{ "%.2f"|format(rule.lift) }}<small>×</small></strong></div>
+        </article>
+        {% endfor %}
+      </div>
+      <p class="results-note">Higher confidence means the recommendation appeared more often when the selected product was in a basket. Lift above 1 indicates a positive association.</p>
+    </section>
+    {% elif message %}
+    <div class="notice" role="status"><span>ⓘ</span><p>{{ message }}</p></div>
+    {% endif %}
+
+    <footer class="footer"><span>Built with association rule mining</span><span>{{ product_count }} products <i>·</i> {{ rule_count }} rules</span></footer>
+  </main>
+</body>
+</html>
